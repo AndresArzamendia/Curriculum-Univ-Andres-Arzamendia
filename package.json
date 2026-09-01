@@ -2,22 +2,45 @@
   "name": "portfolio-cv-andres-arzamendia",
   "version": "1.0.0",
   "private": true,
-  "description": "Portafolio/CV profesional con panel de administración",
+  "description": "Portafolio/CV profesional con panel de administración (Next.js + Prisma)",
   "scripts": {
-    "install:all": "npm --prefix backend install && npm --prefix frontend install",
-    "setup:backend": "npm --prefix backend run prisma:generate && npm --prefix backend run prisma:migrate -- --name init",
-    "seed:backend": "npm --prefix backend run prisma:seed",
-    "dev:backend": "npm --prefix backend run dev",
-    "dev:frontend": "npm --prefix frontend run dev",
-    "dev": "concurrently -n backend,frontend -c cyan,magenta \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "build": "npm --prefix backend run build && npm --prefix frontend run build",
-    "start:backend": "npm --prefix backend run start",
-    "start:frontend": "npm --prefix frontend run start"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:studio": "prisma studio",
+    "db:setup": "prisma migrate dev && npm run prisma:seed"
   },
   "dependencies": {
-    "@vercel/speed-insights": "^2.0.0"
+    "@hookform/resolvers": "^3.9.0",
+    "@prisma/client": "^5.19.0",
+    "@vercel/blob": "^0.26.0",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.441.0",
+    "next": "14.2.12",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "recharts": "^2.12.7",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^22.5.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.44",
+    "prisma": "^5.19.0",
+    "tailwindcss": "^3.4.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   }
 }

@@ -2,7 +2,6 @@
 node_modules/
 dist/
 .next/
-.next/
 
 # Environment
 .env
@@ -13,10 +12,11 @@ dist/
 *.db
 *.db-journal
 prisma/dev.db
+prisma/dev.db-journal
 
-# Uploads
-backend/uploads/*
-!backend/uploads/.gitkeep
+# Uploads (runtime files)
+public/uploads/*
+!public/uploads/.gitkeep
 
 # Logs
 *.log
