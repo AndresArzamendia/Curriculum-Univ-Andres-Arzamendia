@@ -147,14 +147,25 @@ Navega a http://localhost:3000/admin/login
 ### Opción A: Vercel (Frontend) + Railway/Render (Backend)
 
 **Frontend en Vercel:**
-1. Importa el repositorio en [Vercel](https://vercel.com) y conecta la rama `main`
-2. El `vercel.json` en la raíz ya configura el **Root Directory = `frontend`** (no hace falta tocar nada en el dashboard)
+
+Antes de desplegar hay que decirle a Vercel dónde está la app Next.js. Como la app vive dentro de `frontend/` (no en la raíz del repo), **no** se puede usar `rootDirectory` en `vercel.json` (Vercel no lo acepta en su esquema). Debes configurarlo de una de estas dos formas:
+
+1. **Desde el dashboard (recomendado)** → En el proyecto de Vercel: *Project Settings → General → Root Directory* → escribe `frontend` → *Save*. En el siguiente deploy Vercel usará `frontend/package.json` y detectará Next.js automáticamente.
+
+2. **Desde la CLI** → Dentro de la carpeta, ejecuta `vercel link` para anclar el proyecto:
+   ```bash
+   cd frontend
+   vercel link
+   vercel   # o: vercel --prod
+   ```
+   Vercel detectará `frontend` como raíz del proyecto Next.js y creará `frontend/.vercel/project.json`.
+
+Después de cualquiera de las dos opciones:
 3. En *Project Settings → Environment Variables* añade:
    ```
    NEXT_PUBLIC_API_URL=https://tu-backend.com/api   # Reemplaza con la URL real de tu API
    ```
-4. Despliega. Vercel detectará Next.js automáticamente en `frontend/` y ejecutará `next build`
-5. Si prefieres el dashboard: *Project Settings → General → Root Directory* = `frontend` (mismo efecto que el `vercel.json`)
+4. Despliega. Vercel ejecutará `next build` dentro de `frontend/`.
 
 **Backend en Railway/Render:**
 1. Crea un nuevo servicio desde el directorio `backend`
