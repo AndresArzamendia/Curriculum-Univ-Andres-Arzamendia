@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Andres Arzamendia | Portafolio Profesional",
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className="min-h-screen bg-dark-900 text-gray-200 antialiased">
         <Providers>{children}</Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
