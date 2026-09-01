@@ -147,15 +147,22 @@ Navega a http://localhost:3000/admin/login
 ### Opción A: Vercel (Frontend) + Railway/Render (Backend)
 
 **Frontend en Vercel:**
-1. Importa el proyecto en [Vercel](https://vercel.com)
-2. Configura el directorio raíz como `frontend`
-3. Añade la variable `NEXT_PUBLIC_API_URL` apuntando a tu backend
+1. Importa el repositorio en [Vercel](https://vercel.com) y conecta la rama `main`
+2. El `vercel.json` en la raíz ya configura el **Root Directory = `frontend`** (no hace falta tocar nada en el dashboard)
+3. En *Project Settings → Environment Variables* añade:
+   ```
+   NEXT_PUBLIC_API_URL=https://tu-backend.com/api   # Reemplaza con la URL real de tu API
+   ```
+4. Despliega. Vercel detectará Next.js automáticamente en `frontend/` y ejecutará `next build`
+5. Si prefieres el dashboard: *Project Settings → General → Root Directory* = `frontend` (mismo efecto que el `vercel.json`)
 
 **Backend en Railway/Render:**
 1. Crea un nuevo servicio desde el directorio `backend`
 2. Configura PostgreSQL como base de datos
-3. Añade las variables de entorno (DATABASE_URL, JWT_SECRET, etc.)
+3. Añade las variables de entorno (DATABASE_URL, JWT_SECRET, CORS_ORIGIN con la URL de Vercel)
 4. Ejecuta migraciones: `npm run prisma:migrate && npm run prisma:seed`
+
+> **Nota CORS**: Asegúrate de que `CORS_ORIGIN` en el backend apunte a tu dominio de Vercel (ej: `https://tu-app.vercel.app`) para que el frontend pueda comunicarse con la API.
 
 ### Opción B: Server Único (Node.js)
 ```bash

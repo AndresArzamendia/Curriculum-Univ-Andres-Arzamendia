@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Download, Terminal } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
@@ -62,13 +63,7 @@ export default function Header() {
               href="/cv"
               className="btn-neon hidden sm:flex items-center gap-2 text-xs py-2 px-4"
               onClick={() => {
-                if (typeof window !== "undefined") {
-                  fetch("http://localhost:4000/api/metrics/track", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ event: "cv_download" }),
-                  }).catch(() => {});
-                }
+                api.metrics.track("cv_download").catch(() => {});
               }}
             >
               <Download size={14} />

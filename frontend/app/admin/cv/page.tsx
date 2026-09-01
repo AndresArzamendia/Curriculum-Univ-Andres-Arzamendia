@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { API_BASE_URL, BACKEND_ORIGIN, api } from "@/lib/api";
 import { Upload, FileText, Trash2 } from "lucide-react";
 
 export default function AdminCV() {
@@ -35,7 +36,7 @@ export default function AdminCV() {
 
       const token = document.cookie.match(/token=([^;]+)/)?.[1];
 
-      const res = await fetch("http://localhost:4000/api/upload", {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -48,7 +49,7 @@ export default function AdminCV() {
       const data = await res.json();
       setCvUrl(data.url);
 
-      await fetch("http://localhost:4000/api/profile", {
+      await fetch(`${API_BASE_URL}/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -116,7 +117,7 @@ export default function AdminCV() {
             <div className="mt-6 p-4 glass rounded-xl inline-flex items-center gap-3">
               <FileText size={16} className="text-neon-green" />
               <a
-                href={`http://localhost:4000${cvUrl}`}
+                href={`${BACKEND_ORIGIN}${cvUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-neon-cyan hover:text-white transition-colors"

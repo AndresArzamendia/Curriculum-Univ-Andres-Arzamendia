@@ -30,11 +30,7 @@ export default function HeroSection() {
   }, []);
 
   const trackClick = (event: string) => {
-    fetch("http://localhost:4000/api/metrics/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event }),
-    }).catch(() => {});
+    api.metrics.track(event).catch(() => {});
   };
 
   return (
