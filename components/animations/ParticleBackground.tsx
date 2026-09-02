@@ -30,34 +30,56 @@ interface Formula {
   opacity: number;
   velocity: number;
   size: number;
+  phase: number; // desplazamiento de fase para animaciones
+  sway: number; // amplitud de balanceo
+  rotVelocity: number; // rotación lenta
+  driftVx: number; // desplazamiento horizontal propio
+  blinkSpeed: number; // velocidad de parpadeo
+  color: string; // rgb base del texto
 }
 
 // Simbología informática / electrónica / matemática / física
 const SYMBOLS =
   "01<>{}[];+=/*∑∫√πΔλθΩΦψ≈≠∞→←↑↓±µΩ∇∂ABCDEF0123456789&#@%";
 
-// Fórmulas y expresiones flotantes temáticas
+// Ecuaciones y expresiones reales de cálculo, matemática, física y electrónica
 const FORMULAS = [
-  "E=mc²",
-  "∫f(x)dx",
-  "∑ᵢ xᵢ",
-  "0xF3",
-  "V=IR",
-  "∇·E=ρ/ε₀",
-  "2ⁿ",
-  "e^iπ+1=0",
-  "n%2===0",
-  "a²+b²=c²",
-  "f(x)=x²",
-  "10₂=2₁₀",
-  "git push",
-  "110010",
-  "sudo",
-  "Ω=R·L",
-  "λ=c/f",
-  "P(A|B)",
-  "x→0",
-  "3.14159…",
+  // Cálculo
+  "∫ₐᵇ f(x) dx = F(b) − F(a)",
+  "d/dx xⁿ = n·xⁿ⁻¹",
+  "lim_{x→0} sin x / x = 1",
+  "∫₁/x dx = ln|x| + C",
+  "f'(x) = lim_{h→0} [f(x+h)−f(x)]/h",
+  "∂f/∂x = lim",
+  "∫₀^∞ e^(−x²) dx = √π/2",
+  "xe^{x} dx",
+  // Física
+  "E = mc²",
+  "F = G·m₁m₂ / r²",
+  "V = IR",
+  "F = ma",
+  "E = −∇φ",
+  "C = Q/V",
+  "p = mv",
+  "n₂ = sinθ₁ / n₁ sinθ₂",
+  "λ = c / f",
+  "KE = ½mv²",
+  "P = IV",
+  "d = ½at² + v₀t",
+  // Matemática / álgebra / trigonometría
+  "a² + b² = c²",
+  "e^(iπ) + 1 = 0",
+  "Σᵢ₌₁ⁿ xᵢ = n(n+1)/2",
+  "sin²θ + cos²θ = 1",
+  "∇·E = ρ / ε₀",
+  "(a+b)² = a² + 2ab + b²",
+  "log_b(x·y) = log_b x + log_b y",
+  "P(A|B) = P(A∩B) / P(B)",
+  "x = (−b ± √(b²−4ac)) / 2a",
+  "φ = (1+√5)/2",
+  "e = lim_{n→∞} (1+1/n)ⁿ",
+  "1 + 1/4 + 1/9 + … = π²/6",
+  "∇×B = μ₀J",
 ];
 
 export default function ParticleBackground() {
@@ -122,17 +144,26 @@ export default function ParticleBackground() {
         });
       }
 
-      // Fórmulas matemáticas flotando
+      // Ecuaciones reales de cálculo/física/matemática flotando
       formulas = [];
-      const fCount = Math.min(7, Math.floor(w / 260));
+      const fCount = Math.min(9, Math.floor(w / 220));
       for (let i = 0; i < fCount; i++) {
+        const idx = Math.floor(Math.random() * FORMULAS.length);
         formulas.push({
           x: Math.random() * w,
           y: Math.random() * h,
-          text: FORMULAS[Math.floor(Math.random() * FORMULAS.length)],
-          opacity: 0.05 + Math.random() * 0.12,
-          velocity: 0.05 + Math.random() * 0.15,
-          size: 14 + Math.random() * 16,
+          text: FORMULAS[idx],
+          opacity: 0.045 + Math.random() * 0.1,
+          velocity: 0.04 + Math.random() * 0.18,
+          size: 13 + Math.random() * 17,
+          phase: Math.random() * Math.PI * 2,
+          sway: 6 + Math.random() * 18,
+          rotVelocity: (Math.random() - 0.5) * 0.0006,
+          driftVx: (Math.random() - 0.5) * 0.18,
+          blinkSpeed: 0.001 + Math.random() * 0.003,
+          color: ["112, 0, 255", "0, 240, 255", "0, 255, 102"][
+            Math.floor(Math.random() * 3)
+          ],
         });
       }
     };
@@ -207,18 +238,37 @@ export default function ParticleBackground() {
         ctx.fillText(s.char, s.x, s.y);
       }
 
-      // --- 3) Fórmulas matemáticas flotando lentamente ---
-      ctx.font = '"JetBrains Mono", monospace';
+      // --- 3) Ecuaciones reales flotando con animación individual ---
+      const now = Date.now();
       for (const f of formulas) {
+        // movimiento vertical (ascenso lento hacia arriba)
         f.y -= f.velocity;
-        if (f.y < -40) {
-          f.y = h + 40;
+        // desplazamiento horizontal propio (drift)
+        f.x += f.driftVx + Math.sin(now * 0.0002 + f.phase) * 0.04;
+        // balanceo lateral sinusoidal (sway)
+        const swayX = Math.sin(now * 0.0004 + f.phase) * f.sway;
+        // parpadeo suave de opacidad
+        const blink = 0.7 + 0.3 * Math.sin(now * f.blinkSpeed * 60 + f.phase);
+
+        // si sale por arriba, reaparece abajo
+        if (f.y < -60) {
+          f.y = h + 60;
           f.x = Math.random() * w;
           f.text = FORMULAS[Math.floor(Math.random() * FORMULAS.length)];
+          f.driftVx = (Math.random() - 0.5) * 0.18;
+          f.rotVelocity = (Math.random() - 0.5) * 0.0006;
+          f.blinkSpeed = 0.001 + Math.random() * 0.003;
         }
-        ctx.fillStyle = `rgba(112, 0, 255, ${f.opacity})`;
-        ctx.font = `600 ${f.size}px "JetBrains Mono", monospace`;
-        ctx.fillText(f.text, f.x, f.y);
+
+        ctx.save();
+        ctx.translate(f.x + swayX, f.y);
+        ctx.rotate(Math.sin(now * f.rotVelocity * 60 + f.phase) * 0.06);
+        // medir el ancho para centrar horizontalmente el texto en el punto
+        ctx.font = `500 ${f.size}px "JetBrains Mono", monospace`;
+        const tw = ctx.measureText(f.text).width;
+        ctx.fillStyle = `rgba(${f.color}, ${f.opacity * blink})`;
+        ctx.fillText(f.text, -tw / 2, 0);
+        ctx.restore();
       }
 
       // --- 4) Onda osciloscopio en la parte inferior ---
