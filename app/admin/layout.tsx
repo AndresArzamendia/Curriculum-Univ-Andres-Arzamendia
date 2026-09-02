@@ -80,11 +80,16 @@ function Sidebar() {
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isLogin = pathname === "/admin/login";
+
   return (
     <AuthProvider>
       <div className="min-h-screen bg-dark-900">
-        <Sidebar />
-        <main className="ml-64 p-8">{children}</main>
+        {!isLogin && <Sidebar />}
+        <main className={isLogin ? "min-h-screen" : "ml-64 p-8"}>
+          {children}
+        </main>
       </div>
     </AuthProvider>
   );

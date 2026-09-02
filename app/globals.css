@@ -304,6 +304,12 @@ body {
   color: rgba(255, 255, 255, 0.3);
 }
 
+/* Input con icono: fuerza el padding-left para que el texto no se superponga
+   con el icono (independiente del orden de cascada de Tailwind) */
+.input-with-icon {
+  padding-left: 44px !important;
+}
+
 /* Binary background animation */
 @keyframes binary-fall {
   0% { transform: translateY(-100%); opacity: 0; }
