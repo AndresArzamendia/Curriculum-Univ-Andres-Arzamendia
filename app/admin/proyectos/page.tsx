@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { Project } from "@/types";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
+import SaveToast, { ToastStatus } from "@/components/admin/SaveToast";
 
 const defaultProject = {
   title: "",
@@ -26,6 +27,14 @@ export default function AdminProyectos() {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<any>(defaultProject);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ status: ToastStatus; message?: string }>({ status: "idle" });
+
+  const notify = (status: ToastStatus, message?: string) => {
+    setToast({ status, message });
+    if (status === "success" || status === "error") {
+      setTimeout(() => setToast({ status: "idle" }), 4000);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/admin/login");
@@ -41,6 +50,7 @@ export default function AdminProyectos() {
 
   const handleSave = async () => {
     try {
+      notify("saving");
       const data = {
         ...form,
         tags: typeof form.tags === "string" && form.tags.startsWith("[")
@@ -57,13 +67,21 @@ export default function AdminProyectos() {
       setIsCreating(false);
       setForm(defaultProject);
       loadProjects();
-    } catch {}
+      notify("success", "El proyecto se guardó correctamente.");
+    } catch (err: any) {
+      notify("error", err?.message || "No se pudo guardar el proyecto.");
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("¿Eliminar este proyecto?")) {
-      await api.projects.delete(id);
-      loadProjects();
+      try {
+        await api.projects.delete(id);
+        loadProjects();
+        notify("success", "Proyecto eliminado.");
+      } catch (err: any) {
+        notify("error", err?.message || "No se pudo eliminar el proyecto.");
+      }
     }
   };
 
@@ -80,6 +98,8 @@ export default function AdminProyectos() {
     return <div className="flex justify-center py-20"><span className="animate-spin w-8 h-8 border-2 border-neon-cyan border-t-transparent rounded-full" /></div>;
   }
 
+  const isSaving = toast.status === "saving";
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -91,7 +111,8 @@ export default function AdminProyectos() {
         </div>
         <button
           onClick={() => { setIsCreating(true); setEditing(null); setForm(defaultProject); }}
-          className="btn-primary flex items-center gap-2"
+          disabled={isSaving}
+          className="btn-primary flex items-center gap-2 disabled:opacity-60"
         >
           <Plus size={16} /> Nuevo Proyecto
         </button>
@@ -200,6 +221,8 @@ export default function AdminProyectos() {
           </div>
         ))}
       </div>
+
+      <SaveToast status={toast.status} message={toast.message} />
     </div>
   );
 }

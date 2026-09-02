@@ -14,6 +14,7 @@ import {
   LogOut,
   Terminal,
 } from "lucide-react";
+import DbStatusIndicator from "@/components/admin/DbStatusIndicator";
 
 const sidebarLinks = [
   { href: "/admin", label: "Métricas", icon: BarChart3 },
@@ -62,8 +63,9 @@ function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-neon-cyan/10">
-        <div className="glass rounded-lg p-3 mb-3">
+      <div className="p-4 border-t border-neon-cyan/10 space-y-3">
+        <DbStatusIndicator />
+        <div className="glass rounded-lg p-3">
           <p className="text-xs text-gray-500">Conectado como</p>
           <p className="text-sm text-white font-medium truncate">{user?.name || user?.email}</p>
         </div>

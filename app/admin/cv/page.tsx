@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL, BACKEND_ORIGIN, api } from "@/lib/api";
 import { Upload, FileText, Trash2 } from "lucide-react";
+import SaveToast, { ToastStatus } from "@/components/admin/SaveToast";
 
 export default function AdminCV() {
   const { user, loading: authLoading } = useAuth();
@@ -13,6 +14,14 @@ export default function AdminCV() {
   const [uploading, setUploading] = useState(false);
   const [cvUrl, setCvUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ status: ToastStatus; message?: string }>({ status: "idle" });
+
+  const notify = (status: ToastStatus, message?: string) => {
+    setToast({ status, message });
+    if (status === "success" || status === "error") {
+      setTimeout(() => setToast({ status: "idle" }), 4500);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/admin/login");
@@ -57,8 +66,11 @@ export default function AdminCV() {
         },
         body: JSON.stringify({ cvUrl: data.url }),
       });
-    } catch {
+
+      notify("success", "CV subido y guardado correctamente.");
+    } catch (err: any) {
       setError("Error al subir el archivo. Intenta de nuevo.");
+      notify("error", err?.message || "No se pudo subir el archivo.");
     } finally {
       setUploading(false);
     }
@@ -137,6 +149,8 @@ export default function AdminCV() {
           </div>
         </div>
       </div>
+
+      <SaveToast status={toast.status} message={toast.message} />
     </div>
   );
 }

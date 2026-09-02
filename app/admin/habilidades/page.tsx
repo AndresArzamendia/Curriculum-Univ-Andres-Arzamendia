@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { Skill } from "@/types";
 import { Plus, Trash2, Save, X } from "lucide-react";
+import SaveToast, { ToastStatus } from "@/components/admin/SaveToast";
 
 export default function AdminHabilidades() {
   const { user, loading: authLoading } = useAuth();
@@ -15,6 +16,14 @@ export default function AdminHabilidades() {
   const [form, setForm] = useState({ name: "", level: 50, category: "Lenguajes", icon: "" });
   const [loading, setLoading] = useState(true);
   const [editingLevel, setEditingLevel] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ status: ToastStatus; message?: string }>({ status: "idle" });
+
+  const notify = (status: ToastStatus, message?: string) => {
+    setToast({ status, message });
+    if (status === "success" || status === "error") {
+      setTimeout(() => setToast({ status: "idle" }), 4000);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/admin/login");
@@ -26,23 +35,38 @@ export default function AdminHabilidades() {
 
   const handleCreate = async () => {
     try {
+      notify("saving");
       await api.skills.create({ ...form, order: skills.length });
       setIsCreating(false);
       setForm({ name: "", level: 50, category: "Lenguajes", icon: "" });
       api.skills.getAll().then(setSkills);
-    } catch {}
+      notify("success", "Habilidad creada correctamente.");
+    } catch (err: any) {
+      notify("error", err?.message || "No se pudo crear la habilidad.");
+    }
   };
 
   const handleUpdateLevel = async (id: string, level: number) => {
-    await api.skills.update(id, { level });
-    setEditingLevel(null);
-    api.skills.getAll().then(setSkills);
+    try {
+      notify("saving");
+      await api.skills.update(id, { level });
+      setEditingLevel(null);
+      api.skills.getAll().then(setSkills);
+      notify("success", "Nivel de habilidad actualizado.");
+    } catch (err: any) {
+      notify("error", err?.message || "No se pudo actualizar el nivel.");
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("¿Eliminar esta habilidad?")) {
-      await api.skills.delete(id);
-      api.skills.getAll().then(setSkills);
+      try {
+        await api.skills.delete(id);
+        api.skills.getAll().then(setSkills);
+        notify("success", "Habilidad eliminada.");
+      } catch (err: any) {
+        notify("error", err?.message || "No se pudo eliminar la habilidad.");
+      }
     }
   };
 
@@ -154,6 +178,8 @@ export default function AdminHabilidades() {
           </div>
         </div>
       ))}
+
+      <SaveToast status={toast.status} message={toast.message} />
     </div>
   );
 }

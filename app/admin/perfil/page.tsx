@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { Profile } from "@/types";
-import { Save, CheckCircle } from "lucide-react";
+import { Save, CheckCircle, Loader2 } from "lucide-react";
+import SaveToast, { ToastStatus } from "@/components/admin/SaveToast";
 
 export default function AdminPerfil() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<Partial<Profile>>({});
-  const [saved, setSaved] = useState(false);
+  const [toast, setToast] = useState<{ status: ToastStatus; message?: string }>({ status: "idle" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,12 +25,21 @@ export default function AdminPerfil() {
     }
   }, [user]);
 
+  const notify = (status: ToastStatus, message?: string) => {
+    setToast({ status, message });
+    if (status === "success" || status === "error") {
+      setTimeout(() => setToast({ status: "idle" }), 4000);
+    }
+  };
+
   const handleSave = async () => {
     try {
+      notify("saving");
       await api.profile.update(profile);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch {}
+      notify("success", "El perfil se actualizó correctamente.");
+    } catch (err: any) {
+      notify("error", err?.message || "No se pudo guardar el perfil. Verifica la conexión a la base de datos.");
+    }
   };
 
   const update = (field: string, value: string) => {
@@ -53,6 +63,8 @@ export default function AdminPerfil() {
     { key: "cvUrl", label: "URL del CV PDF", type: "url" },
   ];
 
+  const isSaving = toast.status === "saving";
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -62,9 +74,9 @@ export default function AdminPerfil() {
             Editar <span className="text-neon-cyan text-glow-cyan">Perfil</span>
           </h1>
         </div>
-        <button onClick={handleSave} className="btn-primary flex items-center gap-2">
-          {saved ? <CheckCircle size={16} /> : <Save size={16} />}
-          {saved ? "Guardado!" : "Guardar Cambios"}
+        <button onClick={handleSave} disabled={isSaving} className="btn-primary flex items-center gap-2 disabled:opacity-60">
+          {isSaving ? <Loader2 size={16} className="animate-spin" /> : toast.status === "success" ? <CheckCircle size={16} /> : <Save size={16} />}
+          {isSaving ? "Guardando..." : toast.status === "success" ? "Guardado!" : "Guardar Cambios"}
         </button>
       </div>
 
@@ -92,6 +104,8 @@ export default function AdminPerfil() {
           placeholder="Cuéntanos sobre ti..."
         />
       </div>
+
+      <SaveToast status={toast.status} message={toast.message} />
     </div>
   );
 }

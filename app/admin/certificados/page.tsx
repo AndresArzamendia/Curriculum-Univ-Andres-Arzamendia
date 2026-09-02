@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { Certificate } from "@/types";
 import { Plus, Trash2, Save, X } from "lucide-react";
+import SaveToast, { ToastStatus } from "@/components/admin/SaveToast";
 
 export default function AdminCertificados() {
   const { user, loading: authLoading } = useAuth();
@@ -14,6 +15,14 @@ export default function AdminCertificados() {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState({ title: "", issuer: "", date: "", verifyUrl: "" });
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ status: ToastStatus; message?: string }>({ status: "idle" });
+
+  const notify = (status: ToastStatus, message?: string) => {
+    setToast({ status, message });
+    if (status === "success" || status === "error") {
+      setTimeout(() => setToast({ status: "idle" }), 4000);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/admin/login");
@@ -25,17 +34,26 @@ export default function AdminCertificados() {
 
   const handleCreate = async () => {
     try {
+      notify("saving");
       await api.certificates.create(form);
       setIsCreating(false);
       setForm({ title: "", issuer: "", date: "", verifyUrl: "" });
       api.certificates.getAll().then(setCerts);
-    } catch {}
+      notify("success", "Certificado creado correctamente.");
+    } catch (err: any) {
+      notify("error", err?.message || "No se pudo crear el certificado.");
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("¿Eliminar este certificado?")) {
-      await api.certificates.delete(id);
-      api.certificates.getAll().then(setCerts);
+      try {
+        await api.certificates.delete(id);
+        api.certificates.getAll().then(setCerts);
+        notify("success", "Certificado eliminado.");
+      } catch (err: any) {
+        notify("error", err?.message || "No se pudo eliminar el certificado.");
+      }
     }
   };
 
@@ -100,6 +118,8 @@ export default function AdminCertificados() {
           </div>
         ))}
       </div>
+
+      <SaveToast status={toast.status} message={toast.message} />
     </div>
   );
 }

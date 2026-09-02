@@ -43,14 +43,20 @@ export default function AdminDashboard() {
     }
   }, [user, authLoading, router]);
 
+  const loadMetrics = () => {
+    if (!user) return;
+    api.metrics
+      .get()
+      .then(setMetrics)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
   useEffect(() => {
-    if (user) {
-      api.metrics
-        .get()
-        .then(setMetrics)
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
+    loadMetrics();
+    // Refrescar métricas automáticamente cada 15 segundos
+    const interval = setInterval(loadMetrics, 15000);
+    return () => clearInterval(interval);
   }, [user]);
 
   if (authLoading || loading) {
