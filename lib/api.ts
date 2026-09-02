@@ -7,24 +7,32 @@ const API_URL = API_BASE_URL;
 
 async function fetchAPI<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeoutMs = 30000
 ): Promise<T> {
   const url = `${API_URL}${endpoint}`;
-  const res = await fetch(url, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+      signal: options.signal ?? controller.signal,
+    });
 
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: "Error desconocido" }));
-    throw new Error(error.error || `Error ${res.status}`);
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: "Error desconocido" }));
+      throw new Error(error.error || `Error ${res.status}`);
+    }
+
+    return res.json();
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return res.json();
 }
 
 export const api = {

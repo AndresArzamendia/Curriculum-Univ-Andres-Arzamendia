@@ -36,6 +36,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -47,8 +48,13 @@ export default function AdminDashboard() {
     if (!user) return;
     api.metrics
       .get()
-      .then(setMetrics)
-      .catch(() => {})
+      .then((data) => {
+        setMetrics(data);
+        setError(null);
+      })
+      .catch((e: any) => {
+        setError(e?.message || "No se pudieron cargar las métricas");
+      })
       .finally(() => setLoading(false));
   };
 
@@ -63,6 +69,17 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center h-64">
         <span className="animate-spin w-8 h-8 border-2 border-neon-cyan border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (error && !metrics) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <p className="text-red-400 font-mono text-sm text-center">{error}</p>
+        <button onClick={() => { setLoading(true); setError(null); loadMetrics(); }} className="btn-primary">
+          Reintentar
+        </button>
       </div>
     );
   }

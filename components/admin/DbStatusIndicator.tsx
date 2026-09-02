@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Database, RefreshCcw, CheckCircle2, XCircle, Wifi, WifiOff } from "lucide-react";
 
 interface DbHealth {
@@ -17,6 +17,8 @@ export default function DbStatusIndicator() {
   const [status, setStatus] = useState<DbHealth | null>(null);
   const [checking, setChecking] = useState(true);
   const [hover, setHover] = useState(false);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const checkHealth = async () => {
     setChecking(true);
@@ -37,11 +39,23 @@ export default function DbStatusIndicator() {
     return () => clearInterval(interval);
   }, []);
 
+  const openTooltip = () => {
+    setHover(true);
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const panelW = 288;
+      const left = Math.min(rect.right + 12, window.innerWidth - panelW - 10);
+      const top = Math.max(4, Math.min(rect.top, window.innerHeight - 260));
+      setPos({ x: left, y: top });
+    }
+  };
+
   return (
     <div className="relative">
       <button
-        onClick={checkHealth}
-        onMouseEnter={() => setHover(true)}
+        ref={btnRef}
+        onClick={() => { checkHealth(); }}
+        onMouseEnter={openTooltip}
         onMouseLeave={() => setHover(false)}
         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono transition-all duration-300 border ${
           checking
@@ -69,8 +83,11 @@ export default function DbStatusIndicator() {
       </button>
 
       {/* Tooltip / panel de estado al hacer hover */}
-      {hover && status && (
-        <div className="absolute left-full ml-3 top-0 w-72 glass-strong rounded-xl p-4 z-50 text-left shadow-2xl shadow-black/50">
+      {hover && status && pos && (
+        <div
+          style={{ left: pos.x, top: pos.y, width: 288 }}
+          className="fixed glass-strong rounded-xl p-4 z-50 text-left shadow-2xl shadow-black/50"
+        >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-mono text-gray-400">Estado de la BD</span>
             <span

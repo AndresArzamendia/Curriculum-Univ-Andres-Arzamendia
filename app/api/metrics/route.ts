@@ -7,61 +7,51 @@ export async function GET(req: NextRequest) {
   if (!session) return unauthorized();
 
   try {
-    const [totalVisits, totalDownloads, whatsappClicks, emailClicks, linkedinClicks, githubClicks, recentEvents, eventsByDay, deviceVisits, visitsByDayRaw] =
-      await Promise.all([
-        prisma.metric.count({ where: { event: "page_view" } }),
-        prisma.metric.count({ where: { event: "cv_download" } }),
-        prisma.metric.count({ where: { event: "whatsapp_click" } }),
-        prisma.metric.count({ where: { event: "email_click" } }),
-        prisma.metric.count({ where: { event: "linkedin_click" } }),
-        prisma.metric.count({ where: { event: "github_click" } }),
-        prisma.metric.findMany({
-          orderBy: { createdAt: "desc" },
-          take: 50,
-        }),
-        prisma.metric.groupBy({
-          by: ["event"],
-          _count: { id: true },
-        }),
-        // Desglose de visitas por tipo de dispositivo
-        prisma.metric.findMany({
-          where: { event: "page_view" },
-          orderBy: { createdAt: "desc" },
-          take: 1000,
-          select: { metadata: true },
-        }),
-        prisma.metric.findMany({
-          where: { event: "page_view" },
-          orderBy: { createdAt: "desc" },
-          take: 2000,
-          select: { createdAt: true },
-        }),
-      ]);
+    const [
+      totalVisits,
+      totalDownloads,
+      whatsappClicks,
+      emailClicks,
+      linkedinClicks,
+      githubClicks,
+      recentEvents,
+      eventsByDay,
+      deviceRows,
+      visitDays,
+    ] = await Promise.all([
+      prisma.metric.count({ where: { event: "page_view" } }),
+      prisma.metric.count({ where: { event: "cv_download" } }),
+      prisma.metric.count({ where: { event: "whatsapp_click" } }),
+      prisma.metric.count({ where: { event: "email_click" } }),
+      prisma.metric.count({ where: { event: "linkedin_click" } }),
+      prisma.metric.count({ where: { event: "github_click" } }),
+      prisma.metric.findMany({ orderBy: { createdAt: "desc" }, take: 25 }),
+      prisma.metric.groupBy({ by: ["event"], _count: { id: true } }),
+      // Conteo de visitas por tipo de dispositivo (SQL directo, sin cargar todos los registros)
+      prisma.$queryRaw`
+        SELECT COALESCE(metadata::jsonb ->> 'deviceType', 'desconocido') AS type, COUNT(*)::int AS n
+        FROM "Metric"
+        WHERE event = 'page_view'
+        GROUP BY 1
+      ` as Promise<{ type: string; n: number }[]>,
+      // Visitas por día (solo fecha, no hora)
+      prisma.$queryRaw`
+        SELECT to_char("createdAt", 'YYYY-MM-DD') AS date, COUNT(*)::int AS n
+        FROM "Metric"
+        WHERE event = 'page_view'
+        GROUP BY 1
+        ORDER BY 1 ASC
+      ` as Promise<{ date: string; n: number }[]>,
+    ]);
 
-    const allRecent = visitsByDayRaw;
-
-    const visitsByDayMap = new Map<string, number>();
-    for (const v of allRecent.reverse()) {
-      const day = v.createdAt.toISOString().slice(0, 10);
-      visitsByDayMap.set(day, (visitsByDayMap.get(day) || 0) + 1);
+    const deviceVisits = { desktop: 0, "móvil/tablet": 0, tablet: 0, desconocido: 0 };
+    for (const r of deviceRows) {
+      const t = r.type || "desconocido";
+      (deviceVisits as Record<string, number>)[t] = (deviceVisits as Record<string, number>)[t] || 0;
+      (deviceVisits as Record<string, number>)[t] += r.n;
     }
-    const visitsByDay = Array.from(visitsByDayMap, ([date, count]) => ({
-      date,
-      count,
-    }));
 
-    // Contar visitas por tipo de dispositivo a partir de la metadata
-    const deviceCount = { desktop: 0, "móvil/tablet": 0, tablet: 0, desconocido: 0 };
-    for (const v of deviceVisits) {
-      try {
-        const meta = JSON.parse(v.metadata || "{}");
-        const type = meta.deviceType || "desconocido";
-        deviceCount[type as keyof typeof deviceCount] =
-          (deviceCount[type as keyof typeof deviceCount] || 0) + 1;
-      } catch {
-        deviceCount["desconocido"]++;
-      }
-    }
+    const visitsByDay = visitDays.map((d) => ({ date: d.date, count: d.n }));
 
     return NextResponse.json({
       totalVisits,
@@ -73,7 +63,7 @@ export async function GET(req: NextRequest) {
       eventsByDay,
       visitsByDay,
       recentEvents,
-      deviceVisits: deviceCount,
+      deviceVisits,
     });
   } catch (error: any) {
     return NextResponse.json(
