@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import TechOverlay from "@/components/animations/TechOverlay";
 
 export const metadata: Metadata = {
   title: "Andres Arzamendia | Portafolio Profesional",
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body className="min-h-screen bg-dark-900 text-gray-200 antialiased">
+        <TechOverlay />
         <Providers>{children}</Providers>
       </body>
     </html>

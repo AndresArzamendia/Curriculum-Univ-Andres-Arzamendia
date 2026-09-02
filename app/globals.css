@@ -96,6 +96,103 @@ body {
   background-size: 40px 40px;
 }
 
+/* ---- Tech overlay global ---- */
+/* Rejilla técnica con puntos de soldadura estilo PCB + resplandor animado */
+.tech-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image:
+    /* puntos de soldadura */
+    radial-gradient(circle at 20% 80%, rgba(0, 240, 255, 0.05) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 80% 20%, rgba(112, 0, 255, 0.05) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 50% 50%, rgba(0, 255, 102, 0.04) 1.5px, transparent 1.5px),
+    /* pérdida de señal sutil arriba */
+    linear-gradient(180deg, rgba(0, 240, 255, 0.02), transparent 40%),
+    /* rejilla fina */
+    linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    180px 180px,
+    220px 220px,
+    100% 100%,
+    70px 70px,
+    70px 70px;
+  mix-blend-mode: screen;
+}
+
+/* Vinetas esquinas con acento neón */
+.tech-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 240, 255, 0.06), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(112, 0, 255, 0.06), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(0, 255, 102, 0.05), transparent 40%);
+  filter: blur(1px);
+}
+
+/* Líneas de escaneo horizontales (efecto CRT / HUD) animadas */
+@keyframes hud-scan {
+  0%, 100% { transform: translateY(0); opacity: 0.25; }
+  50% { opacity: 0.6; }
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.015) 0px,
+    rgba(255, 255, 255, 0.015) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* Viga de escaneo vertical que recorre la pantalla */
+@keyframes beam-sweep {
+  0% { left: -10%; opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { left: 110%; opacity: 0; }
+}
+
+.beam {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 120px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.05), transparent);
+  pointer-events: none;
+  z-index: 2;
+  animation: beam-sweep 9s linear infinite;
+}
+
+/* Centelleo general muy sutil */
+@keyframes tech-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.985; }
+  94% { opacity: 1; }
+  97% { opacity: 0.99; }
+}
+
+.tech-flicker {
+  animation: tech-flicker 12s infinite;
+}
+
+/* Resplandor pulsante en puntos de interés del fondo */
+@keyframes pulse-node {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); }
+  50% { box-shadow: 0 0 45px rgba(0, 240, 255, 0.9); }
+}
+
 /* Circuit lines decoration */
 .circuit-lines::before {
   content: "";
