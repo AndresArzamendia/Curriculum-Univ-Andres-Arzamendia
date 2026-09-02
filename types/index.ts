@@ -55,6 +55,7 @@ export interface Metrics {
   eventsByDay: { event: string; _count: { id: number } }[];
   visitsByDay: { date: string; count: number }[];
   recentEvents: MetricEvent[];
+  deviceVisits: { desktop: number; "móvil/tablet": number; tablet: number; desconocido: number };
 }
 
 export interface MetricEvent {

@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   if (!session) return unauthorized();
 
   try {
-    const [totalVisits, totalDownloads, whatsappClicks, emailClicks, linkedinClicks, githubClicks, recentEvents, eventsByDay] =
+    const [totalVisits, totalDownloads, whatsappClicks, emailClicks, linkedinClicks, githubClicks, recentEvents, eventsByDay, deviceVisits, visitsByDayRaw] =
       await Promise.all([
         prisma.metric.count({ where: { event: "page_view" } }),
         prisma.metric.count({ where: { event: "cv_download" } }),
@@ -23,14 +23,22 @@ export async function GET(req: NextRequest) {
           by: ["event"],
           _count: { id: true },
         }),
+        // Desglose de visitas por tipo de dispositivo
+        prisma.metric.findMany({
+          where: { event: "page_view" },
+          orderBy: { createdAt: "desc" },
+          take: 1000,
+          select: { metadata: true },
+        }),
+        prisma.metric.findMany({
+          where: { event: "page_view" },
+          orderBy: { createdAt: "desc" },
+          take: 2000,
+          select: { createdAt: true },
+        }),
       ]);
 
-    const allRecent = await prisma.metric.findMany({
-      where: { event: "page_view" },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-      select: { createdAt: true },
-    });
+    const allRecent = visitsByDayRaw;
 
     const visitsByDayMap = new Map<string, number>();
     for (const v of allRecent.reverse()) {
@@ -42,6 +50,19 @@ export async function GET(req: NextRequest) {
       count,
     }));
 
+    // Contar visitas por tipo de dispositivo a partir de la metadata
+    const deviceCount = { desktop: 0, "móvil/tablet": 0, tablet: 0, desconocido: 0 };
+    for (const v of deviceVisits) {
+      try {
+        const meta = JSON.parse(v.metadata || "{}");
+        const type = meta.deviceType || "desconocido";
+        deviceCount[type as keyof typeof deviceCount] =
+          (deviceCount[type as keyof typeof deviceCount] || 0) + 1;
+      } catch {
+        deviceCount["desconocido"]++;
+      }
+    }
+
     return NextResponse.json({
       totalVisits,
       totalDownloads,
@@ -52,8 +73,12 @@ export async function GET(req: NextRequest) {
       eventsByDay,
       visitsByDay,
       recentEvents,
+      deviceVisits: deviceCount,
     });
-  } catch {
-    return NextResponse.json({ error: "Error al obtener métricas" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: `Error al obtener métricas: ${error?.message || "desconocido"}` },
+      { status: 500 }
+    );
   }
 }

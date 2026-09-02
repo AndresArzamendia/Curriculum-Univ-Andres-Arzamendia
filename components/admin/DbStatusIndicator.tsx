@@ -70,7 +70,7 @@ export default function DbStatusIndicator() {
 
       {/* Tooltip / panel de estado al hacer hover */}
       {hover && status && (
-        <div className="absolute right-0 top-full mt-2 w-72 glass-strong rounded-xl p-4 z-50 text-left shadow-2xl shadow-black/50">
+        <div className="absolute left-full ml-3 top-0 w-72 glass-strong rounded-xl p-4 z-50 text-left shadow-2xl shadow-black/50">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-mono text-gray-400">Estado de la BD</span>
             <span

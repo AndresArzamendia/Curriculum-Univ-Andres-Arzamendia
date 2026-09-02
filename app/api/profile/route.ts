@@ -17,6 +17,26 @@ export async function PUT(req: NextRequest) {
 
   try {
     const data = await req.json();
+
+    // Solo permitir actualizar campos editables del perfil
+    const allowed = [
+      "name",
+      "title",
+      "bio",
+      "email",
+      "phone",
+      "location",
+      "photoUrl",
+      "linkedin",
+      "github",
+      "whatsapp",
+      "cvUrl",
+    ];
+    const cleanData: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (data[key] !== undefined) cleanData[key] = data[key];
+    }
+
     const profile = await prisma.profile.findFirst();
 
     if (!profile) {
@@ -25,11 +45,14 @@ export async function PUT(req: NextRequest) {
 
     const updated = await prisma.profile.update({
       where: { id: profile.id },
-      data,
+      data: cleanData,
     });
 
     return NextResponse.json(updated);
-  } catch {
-    return NextResponse.json({ error: "Error al actualizar perfil" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: `Error al actualizar perfil: ${error?.message || "desconocido"}` },
+      { status: 500 }
+    );
   }
 }

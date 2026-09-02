@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import TechOverlay from "@/components/animations/TechOverlay";
+import PageTracker from "@/components/animations/PageTracker";
 
 export const metadata: Metadata = {
   title: "Andres Arzamendia | Portafolio Profesional",
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className="min-h-screen bg-dark-900 text-gray-200 antialiased">
         <TechOverlay />
+        <PageTracker />
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -83,6 +83,14 @@ export default function AdminDashboard() {
     value: e._count.id,
   }));
 
+  const deviceData = [
+    { name: "Escritorio", value: metrics.deviceVisits?.desktop || 0, color: "#00f0ff" },
+    { name: "Móvil/Tablet", value: metrics.deviceVisits?.["móvil/tablet"] || 0, color: "#7000ff" },
+    { name: "Tablet", value: metrics.deviceVisits?.tablet || 0, color: "#00ff66" },
+    { name: "Desconocido", value: metrics.deviceVisits?.desconocido || 0, color: "#f59e0b" },
+  ];
+  const totalDevice = deviceData.reduce((s, d) => s + d.value, 0);
+
   return (
     <div>
       <div className="mb-8">
@@ -113,6 +121,42 @@ export default function AdminDashboard() {
             </p>
           </motion.div>
         ))}
+      </div>
+
+      {/* Visitas por dispositivo */}
+      <div className="glass rounded-xl p-6 mb-8">
+        <h3 className="font-mono text-sm text-neon-cyan mb-4 flex items-center gap-2">
+          <Activity size={16} /> Visitas por Dispositivo
+        </h3>
+        {totalDevice > 0 ? (
+          <div className="space-y-4">
+            <div className="flex h-3 w-full overflow-hidden rounded-full bg-dark-700">
+              {deviceData.map((d) => (
+                <div
+                  key={d.name}
+                  style={{
+                    width: `${(d.value / totalDevice) * 100}%`,
+                    backgroundColor: d.color,
+                  }}
+                  title={`${d.name}: ${d.value}`}
+                />
+              ))}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {deviceData.map((d) => (
+                <div key={d.name} className="flex items-center justify-between gap-2 rounded-lg bg-dark-700/50 px-3 py-2">
+                  <span className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
+                    {d.name}
+                  </span>
+                  <span className="font-mono text-xs text-white font-semibold">{d.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm text-center py-4">Aún no hay visitas registradas</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
